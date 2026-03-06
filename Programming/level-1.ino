@@ -31,6 +31,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);  // Set the LCD address for a 16 chars and 2
 #define MAX_INPUT 16
 char input[MAX_INPUT];
 int index = 0;
+int res = 0;
 
 // =============================================================================
 // RUNS ONCE IN THE BEGGING 
@@ -48,8 +49,15 @@ void loop(){
   char key = keypad.getKey();
   
   if (key == '='){
-    input[index] = '\0';          
-    calculate(input, MAX_INPUT);
+    input[index] = '\0'; 
+    lcd.setCursor(10, 1);
+    lcd.print('=');         
+    res = calculate(input, MAX_INPUT);
+    if (res == -1) {
+      lcd.print("ERROR");
+    } else {
+      lcd.print(res);
+    }
   } else if (key != '==' and key){
     Serial.print("Key clicked: ");
   	Serial.println(key);
@@ -60,10 +68,11 @@ void loop(){
 
 }
 
-int calculate(char keys[], int length) {
+char calculate(char keys[], int length) {
   int num1 = 0;
   int num2 = 0;
   char op = 0;
+  int result = 0;
   int operatorFound = false;
 
   for (int i = 0; keys[i] != '\0'; i++) {
@@ -90,6 +99,31 @@ int calculate(char keys[], int length) {
   Serial.print(num2);
   Serial.print(", op = ");
   Serial.println(op);
+
+  if (!operatorFound) {
+    result = num1;  // Only one number entered
+  } else {
+    switch (op) {
+      case '+': 
+        result = num1 + num2;
+        break;
+      case '-': 
+        result = num1 - num2;
+        break;
+      case '*': 
+        result = num1 * num2;
+        break;
+      case '/':
+        if (num2 != 0){
+          result = num1 / num2;
+        } else {
+          result = -1;
+        } 
+        break;
+    }
+  }
+
+  return result;
 
 }
 
