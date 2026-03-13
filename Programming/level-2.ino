@@ -32,7 +32,6 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);  // Set the LCD address for a 16 chars and 2
 const int ERROR_CODE = -9999;
 char input[MAX_INPUT];
 int index = 0;
-int res = 0;
 int calculated = false;
 
 // =============================================================================
@@ -54,27 +53,33 @@ void loop(){
   // Restart the calculation
   if(key == '.') {
     Serial.println("Screen cleaning requested.");
-    memset(input, 0, sizeof(input));
-    restartDisplay(); // Clean the screen from what I have written
+    restartDisplay(); 
   }
   // User expects the result
   else if (key == '='){
-    Serial.print("hummm ");
-    Serial.println(calculated);
-
     input[index] = '\0';  // Terminates the string
 
     lcd.setCursor(10, 1); 
     lcd.print('=');         
 
-    res = calculate(input);
+    float res = calculate(input);
 
     if (res == ERROR_CODE) {
       // Invalid operation, like division by zero
       lcd.print("ERROR");
     } else {
       // Display the calculated result
-      lcd.print(res);
+      Serial.print("Result ");
+
+      if (res == (int)res) {
+        // Integer, no decimals
+        Serial.print(round(res));
+        lcd.print(round(res));
+      } else {
+        // Has decimals
+        Serial.print(res);
+        lcd.print(res); 
+      }
     }
     calculated = true;
   } 
@@ -92,11 +97,11 @@ void loop(){
 
 }
 
-char calculate(char keys[]) {
-  int num1 = 0;
-  int num2 = 0;
+float calculate(char keys[]) {
+  float num1 = 0;
+  float num2 = 0;
   char op = 0;
-  int result = 0;
+  float result = 0.0;
   int operatorFound = false;
 
   for (int i = 0; keys[i] != '\0'; i++) {
@@ -116,7 +121,7 @@ char calculate(char keys[]) {
         num_str += keys[j];   // append digit
       }
 
-      int number = num_str.toInt();  // Method of String class
+      float number = num_str.toFloat();  // Method of String class
 
       if (!operatorFound) {
         num1 = number;
@@ -155,14 +160,26 @@ char calculate(char keys[]) {
         break;
     }
   }
-
+  Serial.print(result);
   return result;
 
+}
+
+char num2char(float num) {
+
+  if (num == (int)num) {
+    // Number is an integer
+    return '0';
+  } else {
+    // Number has decimal points
+    return '1';
+  }
 }
 
 int convert_key(char key){
   return key - '0'; 
 }
+
 
 void restartDisplay(){
   lcd.clear();
