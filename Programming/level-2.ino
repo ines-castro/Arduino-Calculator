@@ -107,16 +107,27 @@ char calculate(char keys[]) {
       op = c;
       operatorFound = true;
     }
-
     // Detect numbers (int)
-    int key = convert_key(c);
-    if (key >= 0 && key <= 9) {
-      if (!operatorFound) {
-        num1 = key;
-      } else {
-        num2 = key;
+    else if (isdigit(c)) {
+      String num_str = "";
+
+      int j = i;
+      for (j = i; isdigit(keys[j]); j++) {
+        num_str += keys[j];   // append digit
       }
-    } 
+
+      int number = num_str.toInt();  // Method of String class
+
+      if (!operatorFound) {
+        num1 = number;
+      } else {
+        num2 = number;
+      }
+
+      // No need to process already processed digits
+      i = j - 1; 
+    }
+
   }
 
   // Make sure you are retrieving the correct values
